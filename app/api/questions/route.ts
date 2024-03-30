@@ -63,12 +63,9 @@ export async function GET(
         try{
             
           
-    
-            const scores = await prismadb.Question.findMany({
-                where: {
-                   
-                    storeId: params.storeId
-                },
+
+            const scores = await prismadb.question.findMany({
+               
             });
          
     
