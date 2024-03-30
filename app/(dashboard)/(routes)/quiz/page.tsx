@@ -1,253 +1,151 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { useGlobalContext } from '@/context/global-context';
-import { useParams, useRouter, usePathname } from "next/navigation";
-import getQuestions from '@/actions/get-questions';
-import { set } from 'react-hook-form';
-
-
-
-
-
+import { useRouter, usePathname } from 'next/navigation';
+import axios from 'axios';
 
 // Define the type for the quiz question
-type Question = {
-    id: number;
-    question: string;
-    options: string[];
-    answer: string;
-};
+interface Question {
+  id: number;
+  question: string;
+  answer: string;
+  options: string[]; // Added options field
+}
 
+// Define the type for options
+interface Option {
+  id: number;
+  value: string;
+  questionId: number;
+}
 
+const Quiz = () => {
+  const router = useRouter();
+  const pathname = usePathname();
+  const [questionData, setQuestionData] = useState<Question[] | null>(null);
+  const [participantID, setParticipantID] = useState<string>('');
+  const [selectedAnswers, setSelectedAnswers] = useState<{ [key: number]: string }>({});
+  const [score, setScore] = useState<number>(0);
+  const [answerCorrectness, setAnswerCorrectness] = useState<{ [key: number]: boolean }>({});
+  const [questionTracker, setQuestionTracker] = useState<number>(0);
 
-const Quiz = async() => {
-    let questions: Question[];
+  const { addUserData } = useGlobalContext();
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [questionsResponse, optionsResponse] = await Promise.all([
+          axios.get('/api/questions'),
+          axios.get('/api/options'),
+        ]);
+        const questions: Question[] = questionsResponse.data;
+        const options: Option[] = optionsResponse.data;
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const questionData = await getQuestions();
-                setQuestionData(questionData);
-                console.log("This is the questionData inside useEffect", questionData);
-                // Set the state or perform other actions with the fetched data here
-            } catch (error) {
-                console.error("Error fetching questions:", error);
-                // Handle fetch error if needed
-            }
-        };
-    
-        fetchData();
-        setParticipantID(generateUniqueID());
-    }, []);
-    
+        console.log('Questions:', questions);
+        console.log('Options:', options);
 
+        const combinedData = questions.map(question => {
+          const { id, question: questionText, answer } = question;
+          const questionOptions = options.filter(option => option.questionId === id).map(option => option.value);
+          return {
+            id,
+            question: questionText,
+            answer,
+            options: questionOptions,
+          };
+        });
 
-    // Define quiz questions and answers
-    const [questionTracker, setQuestionTracker] = useState<number>(0);
-
-    const router = useRouter();
-    const pathname = usePathname()
-    const [questionData, setQuestionData] = useState<Question[] | null>(null);
-    
-    
-    
-    const hardQuestions: Question[] = [
-        {
-            "id": 1,
-            "question": "What is the key difference between git fork and git clone as explained by Cameron McKenzie",
-            "options": [
-                "Amount of control over repository",
-                "Number of repositories",
-                "Type of files",
-                "GitHub URLs"
-            ],
-            "answer": "Amount of control over repository"
-        },
-        {
-            "id": 2,
-            "question": "According to Cameron McKenzie, what can a developer do with the cloned repository",
-            "options": [
-                "Make changes",
-                "Delete repository",
-                "Rename repository",
-                "Share repository"
-            ],
-            "answer": "Make changes"
-        },
-        {
-            "id": 3,
-            "question": "In the scenario described by Cameron McKenzie, what is the example repository owned by him called",
-            "options": [
-                "Cameron McNz",
-                "J Guevara",
-                "Rock Paper Scissors",
-                "Java Revolutionary"
-            ],
-            "answer": "Cameron McNz"
-        },
-        {
-            "id": 4,
-            "question": "How does a developer obtain the GitHub URL necessary for cloning a repository",
-            "options": [
-                "Request from administrator",
-                "Generate during clone",
-                "Find in repository settings",
-                "Locate in the README file"
-            ],
-            "answer": "Locate in the README file"
-        },
-        {
-            "id": 5,
-            "question": "After performing git add and git commit on the cloned repository, what is the next step described by Cameron McKenzie",
-            "options": [
-                "Git pull",
-                "Git push",
-                "Git merge",
-                "Git branch"
-            ],
-            "answer": "Git push"
-        }
-    ]
-    // Generate a unique ID for each participant
-    const generateUniqueID = (): string => {
-        return Math.random().toString(36).substr(2, 9);
+        setQuestionData(combinedData);
+      } catch (error) {
+        console.error('Error fetching questions:', error);
+        // Handle fetch error if needed
+      }
     };
 
-    // State to store participant's ID, selected answers, and score
-    const { addUserData, quizData } = useGlobalContext();
-    
+    fetchData();
+    setParticipantID(generateUniqueID());
+  }, []);
 
-    const [participantID, setParticipantID] = useState<string>('');
-    const [selectedAnswers, setSelectedAnswers] = useState<{ [key: number]: string }>({});
-    const [score, setScore] = useState<number>(0);
-    const [answerCorrectness, setAnswerCorrectness] = useState<{ [key: number]: boolean }>({});
+  const generateUniqueID = (): string => {
+    return Math.random().toString(36).substr(2, 9);
+  };
 
-    
-    
+  const handleAnswerSelection = (questionID: number, selectedOption: string) => {
+    setSelectedAnswers({ ...selectedAnswers, [questionID]: selectedOption });
+  };
 
+  const handleAnswer = (id: number, selectedAnswer: string) => {
+    const question = questionData?.find(q => q.id === id);
 
-    
-     
-
-
-
-
-
-    
-
-
-   console.log("helllllll", questionData)
-
-    if (questionData) {
-        console.log("This is the questionData inside if", questionData)
-        questions = questionData;
+    const correct = question?.answer === selectedAnswer;
+    if (correct) {
+      setScore(prev => prev + 1);
     }
 
-    // Effect to generate participant ID on component mount
-    
+    setAnswerCorrectness({ ...answerCorrectness, [id]: correct });
 
+    if (questionTracker === (questionData?.length ?? 0) - 1) {
+      setTimeout(() => {
+        addUserData({ userId: participantID, score });
+        router.push(`/results`);
+      }, 500);
+      return;
+    } else {
+      setTimeout(() => {
+        setQuestionTracker(prev => prev + 1);
+      }, 500);
+    }
+  };
 
-   
+  const renderQuestion = (num: number) => {
+    const question = questionData ? questionData[num] : null;
 
-    // Function to handle answer selection
-    const handleAnswerSelection = (questionID: number, selectedOption: string) => {
-        setSelectedAnswers({ ...selectedAnswers, [questionID]: selectedOption });
-    };
-
-
-    const handleAnswer = (id: number, selectedAnswer: string) => {
-       
-        const question = questions.find(q => q.id === id);
-    
-        const correct = question?.answer === selectedAnswer;
-        if (correct) {
-            setScore(prev => prev + 1);
-        }
-
-        setAnswerCorrectness({ ...answerCorrectness, [id]: correct });
-
-        setAnswerCorrectness({ ...answerCorrectness, [id]: correct });
-
-        if (questionTracker === questions.length - 1) {
-            setTimeout(() => {
-                addUserData({ userId: participantID, score });
-                router.push(`/results`);
-            }, 500);
-            return;
-        }else{
-            setTimeout(() => {
-                setQuestionTracker(prev => prev + 1);
-            }, 500);
-
-        }
-
-        
-    };
-
-
-    const renderQuestion = (num: number) => {
-        const question = questionData ? questionData[num] : null;
-
-        const backgroundColors = ['bg-custom1', 'bg-custom2', 'bg-custom3', 'bg-custom4'];
-    
-        return (
-            <div key={question?.id} className='flex flex-col gap-12 px-4'>
-                <div className='p-6  shadow-md rounded-md text-center ' style={{ backgroundColor: '#ffeeee' }}>
-                    <p className="mb-2 text-2xl md:text-4xl">{question?.question}?</p>
-                </div>
-    
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {question?.options.map((option,idx) => (
-                        <div key={option} className="bg-white shadow-md rounded-md md:w-264 md:h-44">
-                            <button
-                               
-                                className={`text-lg md:text-2xl w-full h-full border rounded-md px-4 py-2 ${
-                                    selectedAnswers[question?.id] === option
-                                        ? answerCorrectness[question?.id] ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
-                                        : `${backgroundColors[idx]}`
-                                }`}
-                                onClick={() => {
-                                    handleAnswerSelection(question?.id, option)
-                                    handleAnswer(question?.id, option)
-                                }}
-                            >
-                                {option}
-                            </button>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        );
-    };
-    
+    const backgroundColors = ['bg-custom1', 'bg-custom2', 'bg-custom3', 'bg-custom4'];
 
     return (
-   
-        <div className="bg-cover bg-center h-full" style={{ backgroundImage: 'url(/bgimage.jpg)' }}>
-
-
-           
-      
-            
-            {/* Participant ID */}
-            <div className='flex flex-col sm:flex-col lg:flex-row md:flex-col md:justify-between mx-2'>
-            <div className='  p-4 mb-4 w-auto inline-block text text-lg md:text-2xl text-center' style={{ backgroundColor: '#ffeef8' }}>
-            <p  >Your ID: {participantID}</p>
-            </div>
-            <div className='bg-gray-200 p-4 mb-4 w-auto inline-block  text text-lg md:text-2xl text-center'style={{ backgroundColor: '#fbeeff' }}>
-            {score > 0 && <p>Your score: {score}</p>}
-            </div>
-
-            </div>
-        
-            {renderQuestion(questionTracker)}
-    
-           
+      <div key={question?.id} className="flex flex-col gap-12 px-4">
+        <div className="p-6  shadow-md rounded-md text-center" style={{ backgroundColor: '#ffeeee' }}>
+          <p className="mb-2 text-2xl md:text-4xl">{question?.question}?</p>
         </div>
 
-
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {question?.options.map((option, idx) => (
+            <div key={option} className="bg-white shadow-md rounded-md md:w-264 md:h-44">
+              <button
+                className={`text-lg md:text-2xl w-full h-full border rounded-md px-4 py-2 ${
+                  selectedAnswers[question?.id] === option
+                    ? answerCorrectness[question?.id] ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+                    : `${backgroundColors[idx]}`
+                }`}
+                onClick={() => {
+                  handleAnswerSelection(question?.id, option);
+                  handleAnswer(question?.id, option);
+                }}
+              >
+                {option}
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
     );
+  };
+
+  return (
+    <div className="bg-cover bg-center h-full" style={{ backgroundImage: 'url(/bgimage.jpg)' }}>
+      {/* Participant ID */}
+      <div className="flex flex-col sm:flex-col lg:flex-row md:flex-col md:justify-between mx-2">
+        <div className="p-4 mb-4 w-auto inline-block text text-lg md:text-2xl text-center" style={{ backgroundColor: '#ffeef8' }}>
+          <p>Your ID: {participantID}</p>
+        </div>
+        <div className="bg-gray-200 p-4 mb-4 w-auto inline-block text text-lg md:text-2xl text-center" style={{ backgroundColor: '#fbeeff' }}>
+          {score > 0 && <p>Your score: {score}</p>}
+        </div>
+      </div>
+
+      {renderQuestion(questionTracker)}
+    </div>
+  );
 };
 
 export default Quiz;

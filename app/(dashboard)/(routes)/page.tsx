@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useGlobalContext } from '@/context/global-context';
 import sendQuestions from '@/actions/send-questions';
+import axios from "axios";
 
 const Home: React.FC = () => {
   type QuizQuestion = {
@@ -29,9 +30,11 @@ const Home: React.FC = () => {
       setMessage('You pressed Enter with input: ' + inputValue);
       const data = await getProducts(inputValue);
 
+
       if (data !== null) {
         sendQuestions(data)
-        addQuizData(data)
+   
+        await axios.post(`/api/questions`,data );
    
       }
     

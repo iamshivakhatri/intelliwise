@@ -16,6 +16,7 @@
     "@radix-ui/react-slot": "^1.0.2",
     "@react-pdf/renderer": "^3.4.0",
     "@splinetool/react-spline": "^2.2.6",
+    "axios": "^1.6.8",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "express": "^4.19.2",
