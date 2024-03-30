@@ -37,3 +37,9 @@ next-env.d.ts
 *env
 .env
 notes.txt
+
+# Ignore .env files
+.env
+
+# Ignore notes.txt files
+notes.txt
