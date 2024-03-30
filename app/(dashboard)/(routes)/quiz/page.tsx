@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useGlobalContext } from '@/context/global-context';
 import { useParams, useRouter, usePathname } from "next/navigation";
 import { Heading } from '@/components/ui/heading';
+import Container from '@/components/ui/container';
 
 
 
@@ -170,31 +171,94 @@ const Quiz = () => {
     }, [questionTracker]);
 
     // Render quiz questions and options
-    const renderQuestion = (num: number ) => {
+    // const renderQuestion = (num: number ) => {
+    //     const question = questions[num];
+    //     console.log("This is question", question);
+    //     return (
+    //         <div key={question.id} className="mb-6 p-4 bg-white shadow-md rounded-md">
+
+    //             <p className="mb-2">{question.question}</p>
+    //             <div className="grid grid-cols-1 gap-4 max-w-sm">
+    //                 {question.options.map(option => (
+    //                     <button
+    //                         key={option}
+    //                         className={`border rounded-md px-4 py-2 ${
+    //                             selectedAnswers[question.id] === option
+    //                                 ? answerCorrectness[question.id] ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+    //                                 : 'bg-gray-200'
+    //                         }`}
+    //                         onClick={
+    //                             () => {
+    //                             handleAnswerSelection(question.id, option)
+    //                             handleAnswer(question.id, option)
+    //                         }
+    //                     }
+    //                     >
+    //                         {option}
+    //                     </button>
+    //                 ))}
+    //             </div>
+    //         </div>
+    //     );
+    // };
+    // const renderQuestion = (num: number ) => {
+    //     const question = questions[num];
+     
+    //     return (
+    //         <div key={question.id} className='flex flex-col gap-9'>
+    //             <div className='flex items-center justify-center p-7  px-9 mb-6  border bg-gray-200  shadow-md '>
+    //             <p className="mb-2 text-4xl">{question.question}?</p>
+   
+    //             </div>
+               
+    //             <div className="grid grid-cols-2 gap-4">
+    //                 {question.options.map(option => (
+    //                     <div key={option} className="w-264 h-44 bg-white shadow-md rounded-md ">
+    //                         <button
+    //                             className={`text-3xl w-full h-full border rounded-md px-4 py-2 ${
+    //                                 selectedAnswers[question.id] === option
+    //                                     ? answerCorrectness[question.id] ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+    //                                     : 'bg-gray-200'
+    //                             }`}
+    //                             onClick={() => {
+    //                                 handleAnswerSelection(question.id, option)
+    //                                 handleAnswer(question.id, option)
+    //                             }}
+    //                         >
+    //                             {option}
+    //                         </button>
+    //                     </div>
+    //                 ))}
+    //             </div>
+    //         </div>
+    //     );
+    // };
+    const renderQuestion = (num: number) => {
         const question = questions[num];
-        console.log("This is question", question);
+    
         return (
-            <div key={question.id} className="mb-6 p-4 bg-white shadow-md rounded-md">
-                <Heading title = "Quiz App" description = "Test your knowledge with this quiz app" />
-                <p className="mb-2">{question.question}</p>
-                <div className="grid grid-cols-1 gap-4 max-w-sm">
+            <div key={question.id} className='flex flex-col gap-12 px-4'>
+                <div className='p-6 bg-gray-200 shadow-md rounded-md text-center'>
+                    <p className="mb-2 text-2xl md:text-4xl">{question.question}?</p>
+                </div>
+    
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {question.options.map(option => (
-                        <button
-                            key={option}
-                            className={`border rounded-md px-4 py-2 ${
-                                selectedAnswers[question.id] === option
-                                    ? answerCorrectness[question.id] ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
-                                    : 'bg-gray-200'
-                            }`}
-                            onClick={
-                                () => {
-                                handleAnswerSelection(question.id, option)
-                                handleAnswer(question.id, option)
-                            }
-                        }
-                        >
-                            {option}
-                        </button>
+                        <div key={option} className="bg-white shadow-md rounded-md md:w-264 md:h-44">
+                            <button
+                                className={`text-lg md:text-2xl w-full h-full border rounded-md px-4 py-2 ${
+                                    selectedAnswers[question.id] === option
+                                        ? answerCorrectness[question.id] ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+                                        : 'bg-gray-200'
+                                }`}
+                                onClick={() => {
+                                    handleAnswerSelection(question.id, option)
+                                    handleAnswer(question.id, option)
+                                }}
+                            >
+                                {option}
+                            </button>
+                        </div>
                     ))}
                 </div>
             </div>
@@ -203,11 +267,25 @@ const Quiz = () => {
     
 
     return (
-        <div className="container mx-auto">
-            <h1 className="text-3xl font-bold mb-4">Quiz</h1>
-            <p className="mb-4">Take the quiz to test your knowledge</p>
+   
+            <div>
+
+           
+      
+            
             {/* Participant ID */}
-            <p className="mb-4">Your ID: {participantID}</p>
+            <div className='flex justify-between'>
+            <div className=' bg-gray-200 p-4 mb-4 w-auto inline-block text text-lg md:text-2xl text-center'>
+            <p  >Your ID: {participantID}</p>
+            </div>
+            <div className='bg-gray-200 p-4 mb-4 w-auto inline-block  text text-lg md:text-2xl text-center'>
+            {score > 0 && <p className="mt-4">Your score: {score}</p>}
+            </div>
+
+            </div>
+           
+     
+            
             {/* Quiz Questions */}
             {renderQuestion(questionTracker)}
             {/* Submit button */}
@@ -218,8 +296,10 @@ const Quiz = () => {
                 Submit Answers
             </button> */}
             {/* Score */}
-            {score > 0 && <p className="mt-4">Your score: {score}</p>}
-        </div>
+           
+            </div>
+
+
     );
 };
 
