@@ -7,3 +7,9 @@ Be sure to copy your password
 Password	
 pscale_pw_MONU0DFOa9rrLvs0uOJEKZ3ufhoXjDQGstmfdPsNWg6
 
+git fetch origin main
+Once you've fetched the changes, use git diff or a visual Git tool to inspect the differences between your local branch and the remote branch:
+bash
+Copy code
+git diff main origin/main
+
