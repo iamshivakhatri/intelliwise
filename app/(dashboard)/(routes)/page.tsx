@@ -3,12 +3,22 @@ import getProducts from '@/actions/get-products';
 import { get } from 'http';
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useGlobalContext } from '@/context/global-context';
+import sendQuestions from '@/actions/send-questions';
 
 const Home: React.FC = () => {
+  type QuizQuestion = {
+    id: number;
+    question: string;
+    options: string[];
+    answer: string;
+  };
+
 
   const [inputValue, setInputValue] = useState('');
   const [message, setMessage] = useState('');
   const router = useRouter();
+  const {addQuizData} = useGlobalContext();
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(event.target.value);
@@ -18,6 +28,13 @@ const Home: React.FC = () => {
     if (event.key === 'Enter') {
       setMessage('You pressed Enter with input: ' + inputValue);
       const data = await getProducts(inputValue);
+
+      if (data !== null) {
+        sendQuestions(data)
+        addQuizData(data)
+   
+      }
+    
       console.log("This is data from the API", JSON.stringify(data, null, 2));
       router.push('/qrcode');
     }

@@ -2,8 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { useGlobalContext } from '@/context/global-context';
 import { useParams, useRouter, usePathname } from "next/navigation";
-import { Heading } from '@/components/ui/heading';
-import Container from '@/components/ui/container';
+import getQuestions from '@/actions/get-questions';
+import { set } from 'react-hook-form';
+
+
+
 
 
 
@@ -15,14 +18,41 @@ type Question = {
     answer: string;
 };
 
-const Quiz = () => {
+
+
+const Quiz = async() => {
+    let questions: Question[];
+
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const questionData = await getQuestions();
+                setQuestionData(questionData);
+                console.log("This is the questionData inside useEffect", questionData);
+                // Set the state or perform other actions with the fetched data here
+            } catch (error) {
+                console.error("Error fetching questions:", error);
+                // Handle fetch error if needed
+            }
+        };
+    
+        fetchData();
+        setParticipantID(generateUniqueID());
+    }, []);
+    
+
+
     // Define quiz questions and answers
     const [questionTracker, setQuestionTracker] = useState<number>(0);
 
     const router = useRouter();
     const pathname = usePathname()
+    const [questionData, setQuestionData] = useState<Question[] | null>(null);
     
-    const questions: Question[] = [
+    
+    
+    const hardQuestions: Question[] = [
         {
             "id": 1,
             "question": "What is the key difference between git fork and git clone as explained by Cameron McKenzie",
@@ -85,56 +115,51 @@ const Quiz = () => {
     };
 
     // State to store participant's ID, selected answers, and score
-    const { addUserData } = useGlobalContext();
+    const { addUserData, quizData } = useGlobalContext();
+    
+
     const [participantID, setParticipantID] = useState<string>('');
     const [selectedAnswers, setSelectedAnswers] = useState<{ [key: number]: string }>({});
     const [score, setScore] = useState<number>(0);
     const [answerCorrectness, setAnswerCorrectness] = useState<{ [key: number]: boolean }>({});
 
+    
+    
+
+
+    
+     
+
+
+
+
+
+    
+
+
+   console.log("helllllll", questionData)
+
+    if (questionData) {
+        console.log("This is the questionData inside if", questionData)
+        questions = questionData;
+    }
 
     // Effect to generate participant ID on component mount
-    useEffect(() => {
-        setParticipantID(generateUniqueID());
-    }, []);
+    
+
+
+   
 
     // Function to handle answer selection
     const handleAnswerSelection = (questionID: number, selectedOption: string) => {
         setSelectedAnswers({ ...selectedAnswers, [questionID]: selectedOption });
     };
 
-    // Function to calculate the score
-    // const calculateScore = () => {
-    //     let newScore = 0;
-    //     questions.forEach(question => {
-    //         if (selectedAnswers[question.id] === question.answer) {
-    //             newScore++;
-    //         }
-    //     });
-    //     setScore(newScore);
-    //     addUserData({ userId: participantID, score: newScore });
-    //     router.push(`/results`)
-    //     router.refresh();
-    // };
 
     const handleAnswer = (id: number, selectedAnswer: string) => {
-        // let newScore = score;
-        // let tracker = questionTracker;
+       
         const question = questions.find(q => q.id === id);
     
-        // if (question && question.answer == selectedAnswer) {
-        //     newScore++;
-        //     console.log("This is newScore", newScore)
-        //     //change the color of the button to green
-        // }else{
-        //     //change the color of the button to red
-        //     //show the correct answer
-        // }
-
-
-        // setScore(newScore);
-
-        // tracker++;
-        // setQuestionTracker(tracker);  
         const correct = question?.answer === selectedAnswer;
         if (correct) {
             setScore(prev => prev + 1);
@@ -142,22 +167,18 @@ const Quiz = () => {
 
         setAnswerCorrectness({ ...answerCorrectness, [id]: correct });
 
-        // Update question tracker
-        // setQuestionTracker(prev => prev + 1);
         setAnswerCorrectness({ ...answerCorrectness, [id]: correct });
 
         if (questionTracker === questions.length - 1) {
             setTimeout(() => {
                 addUserData({ userId: participantID, score });
                 router.push(`/results`);
-            }, 3000);
+            }, 500);
             return;
         }else{
             setTimeout(() => {
-            
-                // Update question tracker after delay
                 setQuestionTracker(prev => prev + 1);
-            }, 3000);
+            }, 500);
 
         }
 
@@ -165,95 +186,30 @@ const Quiz = () => {
     };
 
 
-    useEffect(() => {
-        // Redirect to the same page to trigger a refresh
-        router.replace(pathname);
-    }, [questionTracker]);
-
-    // Render quiz questions and options
-    // const renderQuestion = (num: number ) => {
-    //     const question = questions[num];
-    //     console.log("This is question", question);
-    //     return (
-    //         <div key={question.id} className="mb-6 p-4 bg-white shadow-md rounded-md">
-
-    //             <p className="mb-2">{question.question}</p>
-    //             <div className="grid grid-cols-1 gap-4 max-w-sm">
-    //                 {question.options.map(option => (
-    //                     <button
-    //                         key={option}
-    //                         className={`border rounded-md px-4 py-2 ${
-    //                             selectedAnswers[question.id] === option
-    //                                 ? answerCorrectness[question.id] ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
-    //                                 : 'bg-gray-200'
-    //                         }`}
-    //                         onClick={
-    //                             () => {
-    //                             handleAnswerSelection(question.id, option)
-    //                             handleAnswer(question.id, option)
-    //                         }
-    //                     }
-    //                     >
-    //                         {option}
-    //                     </button>
-    //                 ))}
-    //             </div>
-    //         </div>
-    //     );
-    // };
-    // const renderQuestion = (num: number ) => {
-    //     const question = questions[num];
-     
-    //     return (
-    //         <div key={question.id} className='flex flex-col gap-9'>
-    //             <div className='flex items-center justify-center p-7  px-9 mb-6  border bg-gray-200  shadow-md '>
-    //             <p className="mb-2 text-4xl">{question.question}?</p>
-   
-    //             </div>
-               
-    //             <div className="grid grid-cols-2 gap-4">
-    //                 {question.options.map(option => (
-    //                     <div key={option} className="w-264 h-44 bg-white shadow-md rounded-md ">
-    //                         <button
-    //                             className={`text-3xl w-full h-full border rounded-md px-4 py-2 ${
-    //                                 selectedAnswers[question.id] === option
-    //                                     ? answerCorrectness[question.id] ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
-    //                                     : 'bg-gray-200'
-    //                             }`}
-    //                             onClick={() => {
-    //                                 handleAnswerSelection(question.id, option)
-    //                                 handleAnswer(question.id, option)
-    //                             }}
-    //                         >
-    //                             {option}
-    //                         </button>
-    //                     </div>
-    //                 ))}
-    //             </div>
-    //         </div>
-    //     );
-    // };
     const renderQuestion = (num: number) => {
-        const question = questions[num];
+        const question = questionData ? questionData[num] : null;
+
+        const backgroundColors = ['bg-custom1', 'bg-custom2', 'bg-custom3', 'bg-custom4'];
     
         return (
-            <div key={question.id} className='flex flex-col gap-12 px-4'>
-                <div className='p-6 bg-gray-200 shadow-md rounded-md text-center'>
-                    <p className="mb-2 text-2xl md:text-4xl">{question.question}?</p>
+            <div key={question?.id} className='flex flex-col gap-12 px-4'>
+                <div className='p-6  shadow-md rounded-md text-center ' style={{ backgroundColor: '#ffeeee' }}>
+                    <p className="mb-2 text-2xl md:text-4xl">{question?.question}?</p>
                 </div>
     
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {question.options.map(option => (
+                    {question?.options.map((option,idx) => (
                         <div key={option} className="bg-white shadow-md rounded-md md:w-264 md:h-44">
                             <button
+                               
                                 className={`text-lg md:text-2xl w-full h-full border rounded-md px-4 py-2 ${
-                                    selectedAnswers[question.id] === option
-                                        ? answerCorrectness[question.id] ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
-                                        : 'bg-gray-200'
+                                    selectedAnswers[question?.id] === option
+                                        ? answerCorrectness[question?.id] ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+                                        : `${backgroundColors[idx]}`
                                 }`}
                                 onClick={() => {
-                                    handleAnswerSelection(question.id, option)
-                                    handleAnswer(question.id, option)
+                                    handleAnswerSelection(question?.id, option)
+                                    handleAnswer(question?.id, option)
                                 }}
                             >
                                 {option}
@@ -268,36 +224,27 @@ const Quiz = () => {
 
     return (
    
-            <div>
+        <div className="bg-cover bg-center h-full" style={{ backgroundImage: 'url(/bgimage.jpg)' }}>
+
 
            
       
             
             {/* Participant ID */}
-            <div className='flex justify-between'>
-            <div className=' bg-gray-200 p-4 mb-4 w-auto inline-block text text-lg md:text-2xl text-center'>
+            <div className='flex flex-col sm:flex-col lg:flex-row md:flex-col md:justify-between mx-2'>
+            <div className='  p-4 mb-4 w-auto inline-block text text-lg md:text-2xl text-center' style={{ backgroundColor: '#ffeef8' }}>
             <p  >Your ID: {participantID}</p>
             </div>
-            <div className='bg-gray-200 p-4 mb-4 w-auto inline-block  text text-lg md:text-2xl text-center'>
-            {score > 0 && <p className="mt-4">Your score: {score}</p>}
+            <div className='bg-gray-200 p-4 mb-4 w-auto inline-block  text text-lg md:text-2xl text-center'style={{ backgroundColor: '#fbeeff' }}>
+            {score > 0 && <p>Your score: {score}</p>}
             </div>
 
             </div>
-           
-     
-            
-            {/* Quiz Questions */}
+        
             {renderQuestion(questionTracker)}
-            {/* Submit button */}
-            {/* <button
-                className="bg-green-500 text-white rounded-md px-4 py-2 mt-4"
-                onClick={calculateScore}
-            >
-                Submit Answers
-            </button> */}
-            {/* Score */}
+    
            
-            </div>
+        </div>
 
 
     );

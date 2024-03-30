@@ -1,17 +1,17 @@
-import { ProductListResponse } from '@/types';
+import { Question } from '@/types';
 
-const getProducts = async (inputvalue: string): Promise<ProductListResponse | null> => {
+const getProducts = async (inputvalue: String): Promise<Question | null> => {
   try {
-    const textToSend = "Hello sajan. I am a bot. I am here to help you. How can I help you today?";
     
     const requestData = {
-      text: textToSend
+      "youtube_url": inputvalue
     };
+    console.log("This is the request data", requestData);
 
-    const res = await fetch('http://127.0.0.1:5000/api/questions', {
+    const res = await fetch('http://10.24.109.135:5000/generate-quiz', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json' 
         // Add any other headers as needed
       },
       body: JSON.stringify(requestData)
@@ -23,7 +23,7 @@ const getProducts = async (inputvalue: string): Promise<ProductListResponse | nu
     }
 
     // Assuming the server sends back JSON data
-    const data: ProductListResponse = await res.json();
+    const data: Question = await res.json();
 
     console.log("This is data from the API in the action", JSON.stringify(data, null, 2));
     

@@ -1,21 +1,6 @@
-export interface Product {
+export interface Question {
     id: number;
-    title: string;
-    description: string;
-    price: number;
-    discountPercentage: number;
-    rating: number;
-    stock: number;
-    brand: string;
-    category: string;
-    thumbnail: string;
-    images: string[];
+    question: string;
+    options: string[];
+    answer: string;
   }
-  
- export interface ProductListResponse {
-    products: Product[];
-    total: number;
-    skip: number;
-    limit: number;
-  }
-  
