@@ -43,3 +43,7 @@ notes.txt
 
 # Ignore notes.txt files
 notes.txt
+
+.env
+
+notes.txt
