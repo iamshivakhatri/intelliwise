@@ -8,7 +8,7 @@ const getProducts = async (inputvalue: String): Promise<Question | null> => {
     };
     console.log("This is the request data", requestData);
 
-    const res = await fetch('http://10.24.109.135:5000/generate-quiz', {
+    const res = await fetch('http://10.15.214.52:5000/generate-quiz', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json' 
@@ -25,7 +25,7 @@ const getProducts = async (inputvalue: String): Promise<Question | null> => {
     // Assuming the server sends back JSON data
     const data: Question = await res.json();
 
-    console.log("This is data from the API in the action", JSON.stringify(data, null, 2));
+    console.log("This is data from the API in the action", data);
     
     return data;
   } catch (error) {

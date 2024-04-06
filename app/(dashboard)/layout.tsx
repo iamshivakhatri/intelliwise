@@ -13,7 +13,7 @@ export default async function DashboardLayout({
     return (
         <>
         <div>
-            <Navbar/>
+            {/* <Navbar/> */}
         </div>
         {children}
         </>

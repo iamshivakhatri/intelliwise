@@ -1,11 +1,33 @@
 "use client";
 import React, { useEffect } from 'react';
-import { useGlobalContext } from '@/context/global-context';
+import axios from 'axios';
+import UserCard from './components/userCard'; // Capitalize UserCard
+
+
 
 const Results = () => {
-    const { userData, setUserData } = useGlobalContext();
+    const [userData, setUserData] = React.useState([]);
 
-    useEffect(() => {
+    type userData = {
+        userId: string;
+        score: number;
+    };
+
+    type name = string;
+
+    useEffect( () =>  {
+        const fetchData = async () => {
+            try {
+                const response = await axios.get('/api/score');
+                console.log('User data:(response)', response);
+                setUserData(response.data);
+                console.log('User data:', response.data);
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+            }
+        };
+
+        fetchData();
         console.log('userData has changed:', userData);
     }, [userData]); 
 
@@ -17,28 +39,17 @@ const Results = () => {
     return (  
         <div className="max-w-4xl mx-auto px-4 py-8">
             <h1 className="text-3xl font-bold mb-6">Leaderboard</h1>
-            <button 
-                className="bg-red-500 text-white px-4 py-2 rounded-md mb-4"
-                onClick={handleClearUserData}
-            >
-                Clear User Data
-            </button>
-            <table className="w-full border-collapse">
-                <thead>
-                    <tr>
-                        <th className="border border-gray-400 px-4 py-2">User ID</th>
-                        <th className="border border-gray-400 px-4 py-2">Score</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {userData.map((user, index) => (
-                        <tr key={index} className={index % 2 === 0 ? 'bg-gray-100' : ''}>
-                            <td className="border border-gray-400 px-4 py-2">{user.userId}</td>
-                            <td className="border border-gray-400 px-4 py-2">{user.score}</td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+    
+                <div>
+                {userData
+                    .sort((a, b) => b.score - a.score) // Sort userData array in descending order based on score
+                    .map((user, index) => (
+                    <UserCard key={index} userId={user.userId} score={user.score} /> 
+                ))}
+                </div>
+                
+
+             
         </div>
     );
 }
